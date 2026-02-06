@@ -1,17 +1,31 @@
-import socket  # Импорт модуля для работы с сетевыми соединениями
+import socket
 
-HOST = "0.0.0.0"  # Сервер будет слушать все доступные сетевые интерфейсы
-PORT = 13337  # Порт, на котором сервер будет принимать подключения
+HOST = "127.0.0.3"
+PORT = 65432
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # Создание TCP-сокета
-    s.bind((HOST, PORT))  # Привязка сокета к адресу и порту
-    s.listen()  # Начало прослушивания входящих подключений
-    conn, addr = s.accept()  # Принятие подключения (блокирует выполнение до подключения клиента)
-    with conn:  # Работа с подключением клиента
-        print(f"Connected by {addr}")  # Вывод информации о подключившемся клиенте
-        while True:  # Бесконечный цикл для обработки данных от клиента
-            data = conn.recv(1024)  # Получение данных от клиента (максимум 1024 байта)
-            if not data:  # Если данные пустые (клиент отключился)
-                break  # Выход из цикла
-            print(data)  # Вывод полученных данных
-            conn.sendall(data)  # Отправка полученных данных обратно клиенту (эхо-сервер
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT))
+    s.listen()
+    print(f"Server listening on {HOST}:{PORT}")
+    
+    conn, addr = s.accept()
+    with conn:
+        print(f"Connected by {addr}")
+        while True:
+            data = conn.recv(1024)
+            if not data:
+                break
+            
+            message = data.decode('utf-8')
+            print(f"Received: {message}")
+            
+            # Проверяем, не хочет ли клиент выйти
+            if message.lower() == "/exit":
+                print(f"Client {addr} requested to disconnect.")
+                conn.sendall(b"Goodbye!")
+                break
+            
+            # Отправляем обратно (эхо)
+            conn.sendall(data)
+        
+        print("Connection closed.")
