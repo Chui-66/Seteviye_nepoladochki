@@ -1,11 +1,35 @@
-import socket  # Импорт модуля для работы с сетевыми соединениями
+import socket
 
-HOST = "10.90.14.78"  # IP-адрес сервера для подключения
-PORT = 13337  # Номер порта сервера
+HOST = "127.0.0.3"
+PORT = 65432
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:  # Создание TCP-сокета
-    s.connect((HOST, PORT))  # Подключение к серверу по указанному адресу и порту
-    s.sendall(b"Hello, world")  # Отправка байтовой строки серверу
-    data = s.recv(1024)  # Получение ответа от сервера (максимум 1024 байта)
-
-print(f"Received {data!r}")  # Вывод полученных данных
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.connect((HOST, PORT))
+    print(f"Connected to {HOST}:{PORT}")
+    print("Type '/exit' to disconnect.\n")
+    
+    while True:
+        # Ввод сообщения
+        message = input("You: ")
+        
+        # Отправка сообщения
+        s.sendall(message.encode('utf-8'))
+        
+        # Если пользователь ввел exit - завершаем
+        if message.lower() == "/exit":
+            print("Disconnecting...")
+            break
+        
+        # Получение ответа от сервера
+        data = s.recv(1024)
+        print(f"Server: {data.decode('utf-8')}")
+    
+    # Получаем прощальное сообщение от сервера
+    try:
+        data = s.recv(1024)
+        if data:
+            print(f"Server: {data.decode('utf-8')}")
+    except:
+        pass
+    
+print("Connection closed.")
